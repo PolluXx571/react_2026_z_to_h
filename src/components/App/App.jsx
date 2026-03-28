@@ -5,6 +5,7 @@ import Useimg from '../Useimg';
 import Hello from '../Hello';
 
 import './App.css';
+import Myfirsthook from '../Hooks/Myfirsthook';
 
 function App() {
       const [count, setCount] = useState(0);
@@ -20,6 +21,7 @@ function App() {
             condision && (
                   <div>
                         Hello react 1
+                        <Myfirsthook />
                         <MyName mySureName='Irigato matoko' />
                         <Hello style={styleForButton} onClick={handleClick} />
                         <Email />
