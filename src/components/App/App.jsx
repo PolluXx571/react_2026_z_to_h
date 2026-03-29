@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import MyName from '../MyName/MyName';
-import { Email } from '../Email';
-import Useimg from '../Useimg';
-import Hello from '../Hello';
-
 import './App.css';
 import Myfirsthook from '../Hooks/Myfirsthook';
+import Home from '../Home/Home';
+import Formik from '../Form/Formik';
 
 function App() {
-      const [count, setCount] = useState(0);
       const handleClick = () => {
-            alert('hello world');
+            alert('I am function alert passed as a prop from the App component.');
       };
+      const someWords = 'I am text passed from App Component';
       const condision = true;
       const styleForButton = {
             color: 'blue',
@@ -23,9 +21,8 @@ function App() {
                         Hello react 1
                         <Myfirsthook />
                         <MyName mySureName='Irigato matoko' />
-                        <Hello style={styleForButton} onClick={handleClick} />
-                        <Email />
-                        <Useimg />
+                        <Home message={someWords} myFunc={handleClick} />
+                        <Formik />
                   </div>
             )
       );
