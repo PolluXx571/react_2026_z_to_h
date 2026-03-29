@@ -85,3 +85,168 @@ Bu nedenle prop drilling, React’in doğal bir sonucu olsa da büyük projelerd
 Özetle, React’te event handler’lar çoğu zaman üst component’te tanımlanır ve props aracılığıyla alt component’lere aktarılır. Bu aktarım derinleştikçe **prop drilling** ortaya çıkar. Bu yüzden belirli bir noktadan sonra daha merkezi veri yönetimi yaklaşımlarına geçmek gerekir.
 
 
+# Conditional Rendering = Sartli rendering = Условный рендеринг в React
+
+Aşağıda sana **şartlı rendering + TanStack Query + boş array (props) kullanımı** konusunu **tek akış, birleşik yazı, minimum satır** olacak şekilde, ama **anlaşılır ve eksiksiz** verdim. Kodlar ayrı bloklarda ve temiz.
+
+---
+
+# 📘 React’te Şartlı Rendering + Data Flow + TanStack Query — Konsolide Not
+
+React’te şartlı rendering, UI’ı belirli koşullara göre değiştirme yöntemidir ve bu koşullar genellikle state veya server’dan gelen veri (server state) üzerinden belirlenir. Modern React uygulamalarında bu veri çoğunlukla TanStack Query ile yönetilir ve doğru mental model şu şekildedir: **UI = f(state) veya daha spesifik olarak UI = f(server state)**. Yani kullanıcı arayüzü, verinin durumuna göre deterministik şekilde değişir ve hiçbir zaman belirsiz bir durumda kalmamalıdır. Bu nedenle production seviyesinde bir component her zaman veriyle ilgili tüm durumları açık şekilde handle etmelidir: loading, error, empty ve success.
+
+Şartlı rendering React’te JavaScript koşullarıyla yapılır ve en yaygın yöntemler ternary, logical AND (&&) ve early return pattern’dir. Ancak gerçek dünyada bu sadece “koşul yazmak” değildir; aslında yapılan şey server state’i UI’a map etmektir. TanStack Query bu state’i otomatik olarak sağlar (`isLoading`, `isError`, `data`) ve geliştiricinin görevi bu state’leri doğru UI ile eşleştirmektir. Junior seviyede genellikle sadece veri render edilir ve bu ciddi hatalara yol açar; mid seviyede loading, error ve empty state’ler eklenir; senior seviyede ise logic ve UI ayrılır, custom hook kullanılır ve sistem ölçeklenebilir hale getirilir.
+
+Props ile veri gönderme tarafında da önemli bir konu vardır: veri tipi tutarlılığı. Örneğin bir parent component bir child component’e mesaj listesi gönderirken şu kullanım yapılabilir:
+
+```js id="ex1"
+const mesajlar = ["mesaj 1", "mesaj 2"];
+
+<Kullanci message={mesajlar} />
+<Kullanci message={[]} />
+```
+
+Burada boş array (`[]`) gönderilmesinin sebebi, component’in her zaman aynı veri tipini almasını sağlamaktır. `undefined` veya `null` yerine boş array kullanmak, component içinde güvenli ve öngörülebilir bir yapı oluşturur. Çünkü boş array şu anlama gelir: “veri var ama içi boş”. Bu sayede component içinde şu kontrol yapılabilir ve UI doğru şekilde yönetilir:
+
+```js id="ex2"
+function Kullanci({ message }) {
+  if (!message || message.length === 0) {
+    return <p>Mesaj yok</p>;
+  }
+
+  return (
+    <ul>
+      {message.map((m, i) => (
+        <li key={i}>{m}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+Bu yaklaşım aynı zamanda şartlı rendering’in temel kullanımına da örnektir: veri varsa liste gösterilir, yoksa alternatif UI gösterilir. Buradaki kritik nokta, component’in her zaman predictable (öngörülebilir) olmasıdır. Eğer `message` bazen undefined olsaydı `.map()` hatası oluşabilirdi, bu yüzden boş array kullanımı bir nevi contract (sözleşme) görevi görür.
+
+TanStack Query ile bu yapı daha da profesyonel hale gelir çünkü server state otomatik yönetilir. Aşağıda junior, mid ve senior seviyede aynı problemin nasıl çözüldüğünü görebilirsin.
+
+---
+
+## 🟢 Junior Level (Eksik yaklaşım)
+
+```js id="jun1"
+import { useQuery } from '@tanstack/react-query';
+
+function Messages() {
+  const { data } = useQuery({
+    queryKey: ['messages'],
+    queryFn: fetchMessages,
+  });
+
+  return (
+    <ul>
+      {data.map((m) => (
+        <li key={m.id}>{m.text}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+👉 Problemler: loading yok, error yok, empty yok, crash riski var.
+
+---
+
+## 🟡 Mid Level (Doğru conditional rendering)
+
+```js id="mid1"
+import { useQuery } from '@tanstack/react-query';
+
+function Messages() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['messages'],
+    queryFn: fetchMessages,
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error occurred</p>;
+  if (!data || data.length === 0) return <p>No messages</p>;
+
+  return (
+    <ul>
+      {data.map((m) => (
+        <li key={m.id}>{m.text}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+👉 Doğru: tüm state’ler handle edildi, UI artık güvenli.
+
+---
+
+## 🔴 Senior / Team Lead Level (Production Pattern)
+
+### Data Layer
+
+```js id="sen1"
+import { useQuery } from '@tanstack/react-query';
+
+export function useMessages() {
+  return useQuery({
+    queryKey: ['messages'],
+    queryFn: async () => {
+      const res = await fetch('/api/messages');
+      if (!res.ok) throw new Error('Network error');
+      return res.json();
+    },
+    staleTime: 5000,
+  });
+}
+```
+
+---
+
+### UI Layer
+
+```js id="sen2"
+import { useMessages } from './useMessages';
+
+function Messages() {
+  const { data, isLoading, isError, error, refetch } = useMessages();
+
+  if (isLoading) return <p>Loading...</p>;
+
+  if (isError) {
+    return (
+      <div>
+        <p>{error.message}</p>
+        <button onClick={refetch}>Retry</button>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) return <p>No messages found</p>;
+
+  return (
+    <ul>
+      {data.map((m) => (
+        <li key={m.id}>{m.text}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+# 🧠 Sonuç
+
+React’te şartlı rendering sadece “if yazmak” değildir; veri durumlarını doğru şekilde UI’a yansıtmaktır. Boş array (`[]`) kullanımı component’i güvenli ve öngörülebilir hale getirir, TanStack Query ise server state’i yöneterek bu süreci otomatikleştirir. Doğru yaklaşım her zaman explicit (açık) kontrol yapmaktır: loading, error, empty ve success durumları ayrı ayrı ele alınmalıdır. Senior seviyede ise bu yapı abstraction ile ayrılır ve component sadece UI render eden saf bir katman haline getirilir.
+
+---
+
+İstersen bunu bir sonraki adımda:
+
+👉 **gerçek mülakat soruları + trap sorular + edge case’ler**
+
+haline çevirebilirim (çok faydalı olur).
