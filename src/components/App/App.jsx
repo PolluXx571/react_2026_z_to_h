@@ -4,6 +4,7 @@ import './App.css';
 import Myfirsthook from '../Hooks/Myfirsthook';
 import Home from '../Home/Home';
 import Formik from '../Form/Formik';
+import Rendering from '../ConditionalRendering/Rendering';
 
 function App() {
       const handleClick = () => {
@@ -23,6 +24,7 @@ function App() {
                         <MyName mySureName='Irigato matoko' />
                         <Home message={someWords} myFunc={handleClick} />
                         <Formik />
+                        <Rendering />
                   </div>
             )
       );
