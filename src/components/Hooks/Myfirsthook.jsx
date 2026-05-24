@@ -16,7 +16,7 @@ export default function Myfirsthook() {
                               increment();
                         }}
                   >
-                        click increment number + 1
+                        click increment number
                   </button>
                   <span style={myStyle}> {clicks}</span>
             </div>
