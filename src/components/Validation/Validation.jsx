@@ -151,7 +151,6 @@ function Validation() {
                               </button>
                         </div>
 
-                       
                         <div className='mt-4 text-center text-sm font-medium'>
                               {hasError && <div className='text-red-600'>Please check the form fields ❌</div>}
                               {isSubmitted && (
