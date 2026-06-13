@@ -6,6 +6,8 @@ import Home from '../Home/Home';
 import Formik from '../Form/Formik';
 import Rendering from '../ConditionalRendering/Rendering';
 import Validation from '../Validation/Validation';
+import Container from '../children/Container';
+import Button from '../Button/Button';
 
 function App() {
       // const handleClick = () => {
@@ -26,7 +28,11 @@ function App() {
                         <Home message={someWords} myFunc={handleClick} />
                         <Formik />
                         <Rendering /> */}
-                        <Validation />
+                        {/* <Validation /> */}
+                        {/* <Container>
+                              <h2>this is children component</h2>
+                        </Container> */}
+                        <Button/>
                   </div>
             )
       );
