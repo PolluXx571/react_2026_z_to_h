@@ -8,6 +8,7 @@ import Rendering from '../ConditionalRendering/Rendering';
 import Validation from '../Validation/Validation';
 import Container from '../children/Container';
 import Button from '../Button/Button';
+import Tailwind from '../TailwindCss/Tailwind';
 
 function App() {
       // const handleClick = () => {
@@ -29,10 +30,11 @@ function App() {
                         <Formik />
                         <Rendering /> */}
                         {/* <Validation /> */}
-                        {/* <Container>
+                        {/* <Container>  
                               <h2>this is children component</h2>
                         </Container> */}
-                        <Button/>
+                        {/* <Button/> */}
+                        <Tailwind />
                   </div>
             )
       );
