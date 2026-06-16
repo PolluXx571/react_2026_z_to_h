@@ -3,7 +3,7 @@ import React from 'react';
 function Header({ text, setText, addTodo }) {
       return (
             <div className='max-w-md mx-auto p-4'>
-                  <h1 className='text-3xl font-extrabold text-slate-800 tracking-tight text-center sm:text-left'>
+                  <h1 className='text-3xl flex items-center justify-center font-extrabold text-slate-800 tracking-tight text-center sm:text-left'>
                         MY TODO APP
                   </h1>
 
